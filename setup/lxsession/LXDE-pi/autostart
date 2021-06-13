@@ -1,0 +1,7 @@
+@lxpanel --profile LXDE-pi
+@pcmanfm --desktop --profile LXDE-pi
+#@xscreensaver -no-splash
+@xset s off
+@xset -dpms
+@lxterminal -e bash /home/analog/git/adrv9009_fm8_multi_sync_test/auto_log.sh
+
