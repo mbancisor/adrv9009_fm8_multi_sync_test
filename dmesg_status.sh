@@ -2,7 +2,7 @@
 
 echo "dmesg_log"
 file="log_dmesg.txt"
-test=$(($1/3))
+test=$(($1/30))
 
 echo >>$file
 echo >>$file

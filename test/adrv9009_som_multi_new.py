@@ -52,6 +52,7 @@ def measure_phase(chan0, chan1):
 
 if __name__ == "__main__":
     # Create radio
+    RUN_EXTERNAL = True
     try:
         # check if external arguments are provided
         print(f'PRIMARY is set as {sys.argv[1]}')
@@ -64,6 +65,7 @@ if __name__ == "__main__":
         SECONDARY = "ip:10.48.65.96"
         START_TIME = log_utils.generate_file_timestamp()
         LOG_DIR = f'LOG_{START_TIME}'
+        RUN_EXTERNAL = False
     else:
         # else use external provided arguments
         PRIMARY = sys.argv[1]
@@ -73,6 +75,7 @@ if __name__ == "__main__":
     print(f'PRIMARY is set as: {PRIMARY}')
     print(f'SECONDARY is set as: {SECONDARY}')
     print(f'LOG_DIR is set as: {LOG_DIR}')
+    print(f'RUN_EXTERNAL-{RUN_EXTERNAL}')
 
     # Set to False when used without FMCOMMS8
     HAS_FMCOMMS8 = True
@@ -119,10 +122,10 @@ if __name__ == "__main__":
     multi.set_trx_lo_frequency(LO_FREQ)
     multi.primary.dds_single_tone(DDS_FREQ, 0.8)
 
-    log = [[], [], [], [], []]
+    log = [[], [], [], [], [], [], []]
 
     ACQUISITION_CYCLES = 8  # (N)
-    PHASE_MEAS = 5  # (C)
+    PHASE_MEAS = 7  # (C)
     ITERATIONS = 1  # (R)
 
     PLOT_TIME = False
@@ -135,6 +138,7 @@ if __name__ == "__main__":
 
     temperature_meas = np.zeros([8, ITERATIONS])
     hmc7044_regs = [['' for _ in range(ITERATIONS)] for _ in range(6)]
+    temperature_meas_2 = np.zeros([8, ITERATIONS * 8])
 
     if HAS_FMCOMMS8:
         chan_desc = [
@@ -143,6 +147,8 @@ if __name__ == "__main__":
             "Across Chip (B) (C4-C5)",
             "Across FMC8 (B) (C4-C6)",
             "Across SoM (AB) (C0-C4)",
+            "Across FMC8 (AB) (C2-C6)",
+            "Across SoM-FMC8 (AB) (C0-C6)",
         ]
     else:
         chan_desc = [
@@ -155,7 +161,7 @@ if __name__ == "__main__":
 
     RAW_DATA_DIR = 'RAW_DATA'
 
-    log_data = {}
+    log_data, log_data_imag = {}, {}
 
     for itr_index in range(ITERATIONS):
         print("\n\nIteration#", itr_index)
@@ -172,15 +178,30 @@ if __name__ == "__main__":
             # generate column names
             log_data["column_names"] = [
                 f'channel_{index}' for index in range(len(received))]
+            log_data_imag["column_names"] = [
+                f'channel_{index}' for index in range(len(received))]
             # add column data
-            received_real = []
+            received_real, received_imag = [], []
             for _, channel_raw_data in enumerate(received):
                 received_real.append(channel_raw_data.real)
+                received_imag.append(channel_raw_data.imag)
             log_data["column_data"] = received_real
+            log_data_imag["column_data"] = received_imag
             # write data in log
-            log_utils.save_data(
-                log_data, f'test_{itr_index}_{acq_index}',
-                f'{LOG_DIR}/{RAW_DATA_DIR}')
+            if RUN_EXTERNAL is True:
+                log_utils.save_data(
+                    log_data, f'test_{LOG_DIR}_{acq_index}',
+                    f'{LOG_DIR}/{RAW_DATA_DIR}')
+                log_utils.save_data(
+                    log_data_imag, f'test-imag_{LOG_DIR}_{acq_index}',
+                    f'{LOG_DIR}/{RAW_DATA_DIR}')
+            else:
+                log_utils.save_data(
+                    log_data, f'test_{itr_index}_{acq_index}',
+                    f'{LOG_DIR}/{RAW_DATA_DIR}')
+                log_utils.save_data(
+                    log_data_imag, f'test-imag_{itr_index}_{acq_index}',
+                    f'{LOG_DIR}/{RAW_DATA_DIR}')
 
             phase_meas[0][acq_index] = measure_phase(
                 received[0][DATA_OFFSET:], received[1][DATA_OFFSET:])
@@ -192,24 +213,65 @@ if __name__ == "__main__":
                 received[4][DATA_OFFSET:], received[6][DATA_OFFSET:])
             phase_meas[4][acq_index] = measure_phase(
                 received[0][DATA_OFFSET:], received[4][DATA_OFFSET:])
+            phase_meas[5][acq_index] = measure_phase(
+                received[2][DATA_OFFSET:], received[6][DATA_OFFSET:])
+            phase_meas[6][acq_index] = measure_phase(
+                received[0][DATA_OFFSET:], received[6][DATA_OFFSET:])
 
-            if PLOT_TIME:
-                plt.clf()
-                if HAS_FMCOMMS8:
-                    plt.plot(received[0].real, label="Chan0 SOM A")
-                    plt.plot(received[1].real, label="Chan2 SOM A")
-                    plt.plot(received[2].real, label="Chan4 SOM A FMC8")
-                    plt.plot(received[4].real, label="Chan0 SOM B")
-                    plt.plot(received[6].real, label="Chan4 SOM B FMC8")
-                else:
-                    plt.plot(received[0].real, label="Chan0 SOM A")
-                    plt.plot(received[1].real, label="Chan1 SOM A")
-                    plt.plot(received[2].real, label="Chan2 SOM A")
-                    plt.plot(received[4].real, label="Chan0 SOM B")
-                    plt.plot(received[6].real, label="Chan2 SOM B")
-                plt.legend()
-                plt.draw()
-                plt.pause(0.1)
+    ###########################################################################
+            temperature_meas_2[0][acq_index] = int(log_utils.check_iio_data(
+                'iio_attr -c adrv9009-phy temp0 input')) / 1000
+            temperature_meas_2[1][acq_index] = int(log_utils.check_iio_data(
+                'iio_attr -c adrv9009-phy-b temp0 input')) / 1000
+            temperature_meas_2[2][acq_index] = int(log_utils.check_iio_data(
+                'iio_attr -c adrv9009-phy-c temp0 input')) / 1000
+            temperature_meas_2[3][acq_index] = int(log_utils.check_iio_data(
+                'iio_attr -c adrv9009-phy-d temp0 input')) / 1000
+
+            temperature_meas_2[4][acq_index] = int(log_utils.check_iio_data(
+                'iio_attr -u ' + SECONDARY +
+                ' -c adrv9009-phy temp0 input')) / 1000
+            temperature_meas_2[5][acq_index] = int(log_utils.check_iio_data(
+                'iio_attr -u ' + SECONDARY +
+                ' -c adrv9009-phy-b temp0 input')) / 1000
+            temperature_meas_2[6][acq_index] = int(log_utils.check_iio_data(
+                'iio_attr -u ' + SECONDARY +
+                ' -c adrv9009-phy-c temp0 input')) / 1000
+            temperature_meas_2[7][acq_index] = int(log_utils.check_iio_data(
+                'iio_attr -u ' + SECONDARY +
+                ' -c adrv9009-phy-d temp0 input')) / 1000
+            temp_data, columns_names = [], []
+            temp_data_names = [
+                'adrv9009-phy', 'adrv9009-phy-b',
+                'adrv9009-phy-c', 'adrv9009-phy-d',
+                'adrv9009-phy__sec', 'adrv9009-phy-b__sec',
+                'adrv9009-phy-c__sec', 'adrv9009-phy-d__sec']
+            for list_index, list_element in enumerate(temperature_meas_2):
+                temp_data.append(list_element)
+                columns_names.append(f'{temp_data_names[list_index]}')
+            meas_data = {"column_names": [], "column_data": []}
+            meas_data["column_names"] = columns_names
+            meas_data["column_data"] = temp_data
+            log_utils.save_data(meas_data, 'temp_data_2', f'{LOG_DIR}')
+    ###########################################################################
+
+            # if PLOT_TIME:
+            #     plt.clf()
+            #     if HAS_FMCOMMS8:
+            #         plt.plot(received[0].real, label="Chan0 SOM A")
+            #         plt.plot(received[1].real, label="Chan2 SOM A")
+            #         plt.plot(received[2].real, label="Chan4 SOM A FMC8")
+            #         plt.plot(received[4].real, label="Chan0 SOM B")
+            #         plt.plot(received[6].real, label="Chan4 SOM B FMC8")
+            #     else:
+            #         plt.plot(received[0].real, label="Chan0 SOM A")
+            #         plt.plot(received[1].real, label="Chan1 SOM A")
+            #         plt.plot(received[2].real, label="Chan2 SOM A")
+            #         plt.plot(received[4].real, label="Chan0 SOM B")
+            #         plt.plot(received[6].real, label="Chan2 SOM B")
+            #     plt.legend()
+            #     plt.draw()
+            #     plt.pause(0.1)
 
         for m_index in range(PHASE_MEAS):
             mean_phase_meas[m_index][itr_index] = np.mean(phase_meas[m_index])
@@ -304,41 +366,42 @@ if __name__ == "__main__":
                 mean_phase_meas[meas_index][itr_index]))
         print("###########")
 
-        # if PLOT_TIME:
-        #     plt.clf()
-        #     if HAS_FMCOMMS8:
-        #         plt.plot(received[0].real, label="Chan0 SOM A")
-        #         plt.plot(received[1].real, label="Chan2 SOM A")
-        #         plt.plot(received[2].real, label="Chan4 SOM A FMC8")
-        #         plt.plot(received[4].real, label="Chan0 SOM B")
-        #         plt.plot(received[6].real, label="Chan4 SOM B FMC8")
-        #     else:
-        #         plt.plot(received[0].real, label="Chan0 SOM A")
-        #         plt.plot(received[1].real, label="Chan1 SOM A")
-        #         plt.plot(received[2].real, label="Chan2 SOM A")
-        #         plt.plot(received[4].real, label="Chan0 SOM B")
-        #         plt.plot(received[6].real, label="Chan2 SOM B")
-        #     plt.legend()
-        #     plt.draw()
-        #     plt.pause(2)
+        if PLOT_TIME:
+            plt.clf()
+            if HAS_FMCOMMS8:
+                plt.plot(received[0].real, label="Chan0 SOM A")
+                plt.plot(received[1].real, label="Chan2 SOM A")
+                plt.plot(received[2].real, label="Chan4 SOM A FMC8")
+                plt.plot(received[4].real, label="Chan0 SOM B")
+                plt.plot(received[6].real, label="Chan4 SOM B FMC8")
+            else:
+                plt.plot(received[0].real, label="Chan0 SOM A")
+                plt.plot(received[1].real, label="Chan1 SOM A")
+                plt.plot(received[2].real, label="Chan2 SOM A")
+                plt.plot(received[4].real, label="Chan0 SOM B")
+                plt.plot(received[6].real, label="Chan2 SOM B")
+            plt.legend()
+            plt.draw()
+            plt.pause(2)
 
-        plt.clf()
-        x_axis = np.array(range(0, itr_index + 1))
+        if RUN_EXTERNAL is not True:
+            plt.clf()
+            x_axis = np.array(range(0, itr_index + 1))
 
-        for meas_index in range(PHASE_MEAS):
-            plt.errorbar(
-                x_axis, mean_phase_meas[meas_index][x_axis],
-                yerr=variance_phase_meas[meas_index][x_axis],
-                label=chan_desc[meas_index])
-            # plt.errorbar(
-            #     x_axis, mean_phase_meas[meas_index][x_axis],
-            #     yerr=0, label=chan_desc[meas_index])
-        plt.xlim([-1, x_axis[-1] + 1])
-        plt.xlabel("Measurement Index")
-        plt.ylabel("Phase Difference (Degrees)")
-        plt.legend()
-        plt.draw()
-        plt.pause(0.1)
+            for meas_index in range(PHASE_MEAS):
+                plt.errorbar(
+                    x_axis, mean_phase_meas[meas_index][x_axis],
+                    yerr=variance_phase_meas[meas_index][x_axis],
+                    label=chan_desc[meas_index])
+                # plt.errorbar(
+                #     x_axis, mean_phase_meas[meas_index][x_axis],
+                #     yerr=0, label=chan_desc[meas_index])
+            plt.xlim([-1, x_axis[-1] + 1])
+            plt.xlabel("Measurement Index")
+            plt.ylabel("Phase Difference (Degrees)")
+            plt.legend()
+            plt.draw()
+            plt.pause(0.1)
     # input("Press ENTER to continue...")
     print(log)
     fields = []

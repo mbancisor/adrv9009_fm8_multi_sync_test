@@ -2,7 +2,7 @@
 
 echo "jesd_log"
 file="log_jesd.txt"
-test=$(($1/3))
+test=$(($1/30))
 
 echo >>$file
 echo >>$file
@@ -24,7 +24,7 @@ iio_attr -c adrv9009-phy temp0 input>>$file
 iio_attr -c adrv9009-phy-b temp0 input>>$file
 iio_attr -c adrv9009-phy-c temp0 input>>$file
 iio_attr -c adrv9009-phy-d temp0 input>>$file
- 
+
 echo >>$file
 echo "***HMC7044 VCO regs som fm8 car:">>$file
 iio_reg hmc7044 0x8c>>$file
