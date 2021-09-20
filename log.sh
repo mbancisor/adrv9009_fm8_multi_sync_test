@@ -39,6 +39,9 @@ do
 	sudo sshpass -p 'analog' scp -o StrictHostKeyChecking=no root@$slave_IP:log_dmesg.txt ./log_dmesg_slave.txt
 	wait
 
+  adi_diagnostic_report --file-name /home/analog/git/adrv9009_fm8_multi_sync_test/test/$total_runs/diag_report_run_$total_runs.tar.bz2
+  wait
+
 	total_runs=$((i+prev_runs))
 	echo $total_runs>nr_runs.txt
 done
