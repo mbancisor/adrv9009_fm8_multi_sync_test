@@ -14,9 +14,9 @@ echo "***dmesg:">>$file
 dmesg >>$file
 dmesg -C
 
-echo >>$file
-echo "cat /proc/interrupts output:">>$file
-cat /proc/interrupts >>$file
-echo >>$file
+# echo >>$file
+# echo "cat /proc/interrupts output:">>$file
+# cat /proc/interrupts >>$file
+# echo >>$file
 
 #dmesg |tail -20 |grep -v axi>>$file

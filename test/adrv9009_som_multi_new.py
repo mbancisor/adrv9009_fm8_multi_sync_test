@@ -36,6 +36,8 @@
 
 import csv
 import sys
+from time import sleep
+from typing import List
 
 import adi
 import log_utils
@@ -51,6 +53,7 @@ def measure_phase(chan0, chan1):
 
 
 if __name__ == "__main__":
+
     # Create radio
     RUN_EXTERNAL = True
     try:
@@ -76,6 +79,135 @@ if __name__ == "__main__":
     print(f'SECONDARY is set as: {SECONDARY}')
     print(f'LOG_DIR is set as: {LOG_DIR}')
     print(f'RUN_EXTERNAL-{RUN_EXTERNAL}')
+
+    # =========================================================================
+    reg_value = []
+    for index in range(2, 3):
+        reg_value += [f'0x{index}'] * 10
+    PRI_SOM = [f'iio_reg -u ip:localhost hmc7044 0x1A {value}'
+               for value in reg_value]
+    SEC_SOM = [f'iio_reg -u {SECONDARY} hmc7044 0x1A {value}'
+               for value in reg_value]
+    PRI_FMC8 = [f'iio_reg -u ip:localhost hmc7044-fmc 0x1A {value}'
+                for value in reg_value]
+    SEC_FMC8 = [f'iio_reg -u {SECONDARY} hmc7044-fmc 0x1A {value}'
+                for value in reg_value]
+
+    # PRI_SYS = PRI_SOM * int((int(LOG_DIR) / len(PRI_SOM)) + 1)
+    # SEC_SYS = SEC_SOM * int((int(LOG_DIR) / len(SEC_SOM)) + 1)
+    PRI_SYS = PRI_FMC8 * int((int(LOG_DIR) / len(PRI_FMC8)) + 1)
+    SEC_SYS = SEC_FMC8 * int((int(LOG_DIR) / len(SEC_FMC8)) + 1)
+    # =========================================================================
+    reg_value = []
+    # for index in range(25):  # 24 steps max
+    # for index in range(0, 1):
+    for index in range(0, 25, 6):  # 24 steps max
+        reg_value += [hex(index)] * int(len(PRI_SOM))
+    PRI_CAR_FINE_FMC8 = [f'iio_reg -u ip:localhost hmc7044-car 0x107 {value}'
+                         for value in reg_value]
+    SEC_CAR_FINE_FMC8 = [f'iio_reg -u {SECONDARY} hmc7044-car 0x107 {value}'
+                         for value in reg_value]
+    PRI_CAR_FINE_SOM = [f'iio_reg -u ip:localhost hmc7044-car 0xFD {value}'
+                        for value in reg_value]
+    SEC_CAR_FINE_SOM = [f'iio_reg -u {SECONDARY} hmc7044-car 0xFD {value}'
+                        for value in reg_value]
+    PRI_SYS_FINE = \
+        PRI_CAR_FINE_FMC8 * int((int(LOG_DIR) / len(PRI_CAR_FINE_FMC8)) + 1)
+    SEC_SYS_FINE = \
+        SEC_CAR_FINE_FMC8 * int((int(LOG_DIR) / len(SEC_CAR_FINE_FMC8)) + 1)
+    # PRI_SYS_FINE = \
+    #     PRI_CAR_FINE_SOM * int((int(LOG_DIR) / len(PRI_CAR_FINE_SOM)) + 1)
+    # SEC_SYS_FINE = \
+    #     SEC_CAR_FINE_SOM * int((int(LOG_DIR) / len(SEC_CAR_FINE_SOM)) + 1)
+    # =========================================================================
+    reg_value = []
+    # for index in range(2):  # 17 steps max
+    # for index in range(12, 13):
+    for index in range(18):  # 17 steps max
+        reg_value += [hex(index)] * int(len(PRI_CAR_FINE_FMC8))
+    PRI_CAR_COARSE_FMC8 = \
+        [f'iio_reg -u ip:localhost hmc7044-car 0x108 {value}'
+         for value in reg_value]
+    SEC_CAR_COARSE_FMC8 = \
+        [f'iio_reg -u {SECONDARY} hmc7044-car 0x108 {value}'
+         for value in reg_value]
+    PRI_CAR_COARSE_SOM = \
+        [f'iio_reg -u ip:localhost hmc7044-car 0xFE {value}'
+         for value in reg_value]
+    SEC_CAR_COARSE_SOM = \
+        [f'iio_reg -u {SECONDARY} hmc7044-car 0xFE {value}'
+         for value in reg_value]
+    PRI_SYS_COARSE = \
+        PRI_CAR_COARSE_FMC8 * int(
+            (int(LOG_DIR) / len(PRI_CAR_COARSE_FMC8)) + 1)
+    SEC_SYS_COARSE = \
+        SEC_CAR_COARSE_FMC8 * int(
+            (int(LOG_DIR) / len(SEC_CAR_COARSE_FMC8)) + 1)
+    # PRI_SYS_COARSE = \
+    #     PRI_CAR_COARSE_SOM * int(
+    #         (int(LOG_DIR) / len(PRI_CAR_COARSE_SOM)) + 1)
+    # SEC_SYS_COARSE = \
+    #     SEC_CAR_COARSE_SOM * int(
+    #         (int(LOG_DIR) / len(SEC_CAR_COARSE_SOM)) + 1)
+    # =========================================================================
+
+    reg_value = []
+    # for index in range(25):  # 24 steps max
+    # for index in range(0, 1):
+    for index in range(0, 25, 6):  # 24 steps max
+        reg_value += [hex(index)] * int(len(PRI_SOM))
+    PRI_CAR_FINE_FMC8_2 = [f'iio_reg -u ip:localhost hmc7044-car 0x125 {value}'
+                           for value in reg_value]
+    SEC_CAR_FINE_FMC8_2 = [f'iio_reg -u {SECONDARY} hmc7044-car 0x125 {value}'
+                           for value in reg_value]
+    PRI_CAR_FINE_SOM_2 = [f'iio_reg -u ip:localhost hmc7044-car 0xDF {value}'
+                          for value in reg_value]
+    SEC_CAR_FINE_SOM_2 = [f'iio_reg -u {SECONDARY} hmc7044-car 0xDF {value}'
+                          for value in reg_value]
+    PRI_SYS_FINE_2 = \
+        PRI_CAR_FINE_FMC8_2 * \
+        int((int(LOG_DIR) / len(PRI_CAR_FINE_FMC8_2)) + 1)
+    SEC_SYS_FINE_2 = \
+        SEC_CAR_FINE_FMC8_2 * \
+        int((int(LOG_DIR) / len(SEC_CAR_FINE_FMC8_2)) + 1)
+    # PRI_SYS_FINE_2 = \
+    #     PRI_CAR_FINE_SOM_2 * \
+    #     int((int(LOG_DIR) / len(PRI_CAR_FINE_SOM_2)) + 1)
+    # SEC_SYS_FINE_2 = \
+    #     SEC_CAR_FINE_SOM_2 * \
+    #     int((int(LOG_DIR) / len(SEC_CAR_FINE_SOM_2)) + 1)
+    # =========================================================================
+    reg_value = []
+    # for index in range(2):  # 17 steps max
+    # for index in range(12, 13):
+    # for index in range(14, 18):  # 17 steps max
+    for index in range(18):  # 17 steps max
+        reg_value += [hex(index)] * int(len(PRI_CAR_FINE_FMC8_2))
+    PRI_CAR_COARSE_FMC8_2 = \
+        [f'iio_reg -u ip:localhost hmc7044-car 0x126 {value}'
+         for value in reg_value]
+    SEC_CAR_COARSE_FMC8_2 = \
+        [f'iio_reg -u {SECONDARY} hmc7044-car 0x126 {value}'
+         for value in reg_value]
+    PRI_CAR_COARSE_SOM_2 = \
+        [f'iio_reg -u ip:localhost hmc7044-car 0xE0 {value}'
+         for value in reg_value]
+    SEC_CAR_COARSE_SOM_2 = \
+        [f'iio_reg -u {SECONDARY} hmc7044-car 0xE0 {value}'
+         for value in reg_value]
+    PRI_SYS_COARSE_2 = \
+        PRI_CAR_COARSE_FMC8_2 * int(
+            (int(LOG_DIR) / len(PRI_CAR_COARSE_FMC8_2)) + 1)
+    SEC_SYS_COARSE_2 = \
+        SEC_CAR_COARSE_FMC8_2 * int(
+            (int(LOG_DIR) / len(SEC_CAR_COARSE_FMC8_2)) + 1)
+    # PRI_SYS_COARSE_2 = \
+    #     PRI_CAR_COARSE_SOM_2 * int(
+    #         (int(LOG_DIR) / len(PRI_CAR_COARSE_SOM_2)) + 1)
+    # SEC_SYS_COARSE_2 = \
+    #     SEC_CAR_COARSE_SOM_2 * int(
+    #         (int(LOG_DIR) / len(SEC_CAR_COARSE_SOM_2)) + 1)
+    # =========================================================================
 
     # Set to False when used without FMCOMMS8
     HAS_FMCOMMS8 = True
@@ -170,8 +302,137 @@ if __name__ == "__main__":
         PLOT_TIME = True
         DATA_OFFSET = 400
 
+        # PRYMARY SYSTEM ====================================================
+        # log_utils.check_iio_data(PRI_SYS[int(LOG_DIR)])
+        # print('primary fmc8 (reg 0x1A):')
+        # print(log_utils.check_iio_data(
+        #     'iio_reg -u ip:localhost hmc7044-fmc 0x1A').rstrip())
+
+        # log_utils.check_iio_data(PRI_SYS_FINE[int(LOG_DIR)])
+        # print('primary carrier sync fine (reg 0x107):')  # fine delay
+        # print(log_utils.check_iio_data(
+        #     'iio_reg -u ip:localhost hmc7044-car 0x107').rstrip())
+        # print('primary carrier sync fine (reg 0xFD):')  # fine delay
+        # print(log_utils.check_iio_data(
+        #     'iio_reg -u ip:localhost hmc7044-car 0xFD').rstrip())
+
+        # log_utils.check_iio_data(PRI_SYS_COARSE[int(LOG_DIR)])
+        # print('primary carrier sync coarse (reg 0x108):')  # coarse delay
+        # print(log_utils.check_iio_data(
+        #     'iio_reg -u ip:localhost hmc7044-car 0x108').rstrip())
+        # print('primary carrier sync coarse (reg 0xFE):')  # coarse delay
+        # print(log_utils.check_iio_data(
+        #     'iio_reg -u ip:localhost hmc7044-car 0xFE').rstrip())
+
+        # log_utils.check_iio_data(PRI_SYS[int(LOG_DIR)])
+        # print('primary som (reg 0x1A):')  # charge pump current som
+        # print(log_utils.check_iio_data(
+        #     'iio_reg -u ip:localhost hmc7044 0x1A').rstrip())
+
+        # log_utils.check_iio_data(PRI_SYS[int(LOG_DIR)])
+        # print('primary fmc8 (reg 0x1A):')  # charge pump current som
+        # print(log_utils.check_iio_data(
+        #     'iio_reg -u ip:localhost hmc7044-fmc 0x1A').rstrip())
+
+        # log_utils.check_iio_data(PRI_SYS_FINE_2[int(LOG_DIR)])
+        # print('primary carrier sync fine (reg 0x107):')  # fine delay
+        # print(log_utils.check_iio_data(
+        #     'iio_reg -u ip:localhost hmc7044-car 0x107').rstrip())
+        # print('primary carrier sync fine (reg 0xFD):')  # fine delay
+        # print(log_utils.check_iio_data(
+        #     'iio_reg -u ip:localhost hmc7044-car 0xFD').rstrip())
+        # print('primary carrier sync fine (reg 0x125):')  # fine delay
+        # print(log_utils.check_iio_data(
+        #     'iio_reg -u ip:localhost hmc7044-car 0x125').rstrip())
+        # print('primary carrier sync fine (reg 0xDF):')  # fine delay
+        # print(log_utils.check_iio_data(
+        #     'iio_reg -u ip:localhost hmc7044-car 0xDF').rstrip())
+
+        # log_utils.check_iio_data(PRI_SYS_COARSE_2[int(LOG_DIR)])
+        # print('primary carrier sync coarse (reg 0x108):')  # coarse delay
+        # print(log_utils.check_iio_data(
+        #     'iio_reg -u ip:localhost hmc7044-car 0x108').rstrip())
+        # print('primary carrier sync coarse (reg 0xFE):')  # coarse delay
+        # print(log_utils.check_iio_data(
+        #     'iio_reg -u ip:localhost hmc7044-car 0xFE').rstrip())
+        # print('primary carrier sync coarse (reg 0x126):')  # coarse delay
+        # print(log_utils.check_iio_data(
+        #     'iio_reg -u ip:localhost hmc7044-car 0x126').rstrip())
+        # print('primary carrier sync coarse (reg 0xE0):')  # coarse delay
+        # print(log_utils.check_iio_data(
+        #     'iio_reg -u ip:localhost hmc7044-car 0xE0').rstrip())
+
+        # SECONDARY SYSTEM ==================================================
+        # print('secondary carrier (reg 0x1A):')  # charge pump current carrier
+        # print(log_utils.check_iio_data(
+        #     f'iio_reg -u {SECONDARY} hmc7044-car 0x1A').rstrip())
+
+        # log_utils.check_iio_data(SEC_SYS_FINE[int(LOG_DIR)])
+        # print('secondary carrier sync fine (reg 0x107):')  # fine delay
+        # print(log_utils.check_iio_data(
+        #     f'iio_reg -u {SECONDARY} hmc7044-car 0x107').rstrip())
+        # print('secondary carrier sync fine (reg 0xFD):')  # fine delay
+        # print(log_utils.check_iio_data(
+        #     f'iio_reg -u {SECONDARY} hmc7044-car 0xFD').rstrip())
+
+        # log_utils.check_iio_data(SEC_SYS_COARSE[int(LOG_DIR)])
+        # print('secondary carrier sync coarse (reg 0x108):')  # coarse delay
+        # print(log_utils.check_iio_data(
+        #     f'iio_reg -u {SECONDARY} hmc7044-car 0x108').rstrip())
+        # print('secondary carrier sync coarse (reg 0xFE):')  # coarse delay
+        # print(log_utils.check_iio_data(
+        #     f'iio_reg -u {SECONDARY} hmc7044-car 0xFE').rstrip())
+
+        # log_utils.check_iio_data(SEC_SYS[int(LOG_DIR)])
+        # print('secondary som (reg 0x1A):')  # charge pump current som
+        # print(log_utils.check_iio_data(
+        #     f'iio_reg -u {SECONDARY} hmc7044 0x1A').rstrip())
+
+        # log_utils.check_iio_data(SEC_SYS[int(LOG_DIR)])
+        # print('secondary fmc8 (reg 0x1A):')  # charge pump current som
+        # print(log_utils.check_iio_data(
+        #     f'iio_reg -u {SECONDARY} hmc7044-fmc 0x1A').rstrip())
+
         # [0, 2, 4, 6][0, 2, 4, 6]
         # [0, 1, 2 ,3, 4, 5, 6, 7]
+
+        # input('Set Scope, then ENTER to continue')
+        # log_utils.check_iio_data(
+        #     'iio_reg -u ip:localhost hmc7044-car 0x108 0x0')
+
+        # input('Start Scope, then ENTER to continue')
+
+        print(
+            'iio_attr -D hmc7044-ext status',
+            log_utils.check_iio_data(
+                'iio_attr -D hmc7044-ext status').rstrip())
+
+        print(
+            'iio_attr -D hmc7044-car status',
+            log_utils.check_iio_data(
+                'iio_attr -D hmc7044-car status').rstrip())
+        print(
+            'iio_attr -D hmc7044 status',
+            log_utils.check_iio_data(
+                'iio_attr -D hmc7044 status').rstrip())
+        print(
+            'iio_attr -D hmc7044-fmc status',
+            log_utils.check_iio_data(
+                'iio_attr -D hmc7044-fmc status').rstrip())
+
+        print(
+            'iio_attr -D -u ip:10.48.65.98 hmc7044-car status',
+            log_utils.check_iio_data(
+                'iio_attr -D -u ip:10.48.65.98 hmc7044-car status').rstrip())
+        print(
+            'iio_attr -D -u ip:10.48.65.98 hmc7044 status',
+            log_utils.check_iio_data(
+                'iio_attr -D -u ip:10.48.65.98 hmc7044 status').rstrip())
+        print(
+            'iio_attr -D -u ip:10.48.65.98 hmc7044-fmc status',
+            log_utils.check_iio_data(
+                'iio_attr -D -u ip:10.48.65.98 hmc7044-fmc status').rstrip())
+
         for acq_index in range(ACQUISITION_CYCLES):
             received = multi.rx()
 
@@ -255,23 +516,44 @@ if __name__ == "__main__":
             log_utils.save_data(meas_data, 'temp_data_2', f'{LOG_DIR}')
     ###########################################################################
 
-            # if PLOT_TIME:
-            #     plt.clf()
-            #     if HAS_FMCOMMS8:
-            #         plt.plot(received[0].real, label="Chan0 SOM A")
-            #         plt.plot(received[1].real, label="Chan2 SOM A")
-            #         plt.plot(received[2].real, label="Chan4 SOM A FMC8")
-            #         plt.plot(received[4].real, label="Chan0 SOM B")
-            #         plt.plot(received[6].real, label="Chan4 SOM B FMC8")
-            #     else:
-            #         plt.plot(received[0].real, label="Chan0 SOM A")
-            #         plt.plot(received[1].real, label="Chan1 SOM A")
-            #         plt.plot(received[2].real, label="Chan2 SOM A")
-            #         plt.plot(received[4].real, label="Chan0 SOM B")
-            #         plt.plot(received[6].real, label="Chan2 SOM B")
-            #     plt.legend()
-            #     plt.draw()
-            #     plt.pause(0.1)
+            if PLOT_TIME:
+                plt.clf()
+                if HAS_FMCOMMS8:
+                    plt.plot(
+                        received[0].real,
+                        label=f"{acq_index} Chan0 SOM A")
+                    plt.plot(
+                        received[1].real,
+                        label=f"{acq_index} Chan2 SOM A")
+                    plt.plot(
+                        received[2].real,
+                        label=f"{acq_index} Chan4 SOM A FMC8")
+                    plt.plot(
+                        received[4].real,
+                        label=f"{acq_index} Chan0 SOM B")
+                    plt.plot(
+                        received[6].real,
+                        label=f"{acq_index} Chan4 SOM B FMC8")
+                else:
+                    plt.plot(
+                        received[0].real, label=f"{acq_index} Chan0 SOM A")
+                    plt.plot(
+                        received[1].real, label=f"{acq_index} Chan1 SOM A")
+                    plt.plot(
+                        received[2].real, label=f"{acq_index} Chan2 SOM A")
+                    plt.plot(
+                        received[4].real, label=f"{acq_index} Chan0 SOM B")
+                    plt.plot(
+                        received[6].real, label=f"{acq_index} Chan2 SOM B")
+                plt.legend()
+                plt.draw()
+                plt.pause(0.1)
+
+        # input('Set the Scope for acquisition, then ENTER to continue')
+        # for _ in range(5):
+        #     log_utils.check_iio_data(
+        #         'iio_attr -q -d hmc7044-ext sysref_request 1')
+        # input('Save data from Scope, then ENTER to continue')
 
         for m_index in range(PHASE_MEAS):
             mean_phase_meas[m_index][itr_index] = np.mean(phase_meas[m_index])
@@ -402,6 +684,7 @@ if __name__ == "__main__":
             plt.legend()
             plt.draw()
             plt.pause(0.1)
+
     # input("Press ENTER to continue...")
     print(log)
     fields = []

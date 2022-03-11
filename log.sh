@@ -25,6 +25,8 @@ do
 
 	ping -c 2 $slave_IP
 
+  # sudo busybox devmem 0x84a04044 w 2
+
 	cd test
 	sudo python3 ./adrv9009_som_multi_new.py "ip:localhost" $slave $total_runs
         cd ..
@@ -39,8 +41,12 @@ do
 	sudo sshpass -p 'analog' scp -o StrictHostKeyChecking=no root@$slave_IP:log_dmesg.txt ./log_dmesg_slave.txt
 	wait
 
-  adi_diagnostic_report --file-name /home/analog/git/adrv9009_fm8_multi_sync_test/test/$total_runs/diag_report_run_$total_runs.tar.bz2
-  wait
+  # adi_diagnostic_report --file-name /home/analog/git/adrv9009_fm8_multi_sync_test/test/$total_runs/diag_report_run_$total_runs.tar.bz2
+  # wait
+
+  # cd test
+	# sudo python3 ./check_last_run.py $total_runs
+  #       cd ..
 
 	total_runs=$((i+prev_runs))
 	echo $total_runs>nr_runs.txt
@@ -48,8 +54,8 @@ done
 sudo sync
 sudo sshpass -p 'analog' ssh -o StrictHostKeyChecking=no root@$slave_IP poweroff
 wait
-python3 PDU.py 10.48.65.121 5 delayedReboot
-python3 PDU.py 10.48.65.121 6 delayedReboot
-python3 PDU.py 10.48.65.121 7 delayedReboot
+python3 PDU.py 10.48.65.109 5 delayedReboot
+python3 PDU.py 10.48.65.109 6 delayedReboot
+python3 PDU.py 10.48.65.109 7 delayedReboot
 poweroff
-#reboot
+# reboot

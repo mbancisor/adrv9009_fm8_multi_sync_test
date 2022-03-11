@@ -46,18 +46,18 @@ iio_reg adrv9009-phy-b 0x181>>$file
 iio_reg adrv9009-phy-c 0x181>>$file
 iio_reg adrv9009-phy-d 0x181>>$file
 
-echo >>$file
-echo "***talise reg 0x84a502c4:">>$file
-sudo busybox devmem 0x84a502c4>>$file
-echo >>$file
-echo "***talise reg 0x84a502d0:">>$file
-sudo busybox devmem 0x84a502d0>>$file
-# sudo busybox devmem 0x84a502c0 w 1
+# echo >>$file
+# echo "***talise reg 0x84a502c4:">>$file
+# sudo busybox devmem 0x84a502c4>>$file
+# echo >>$file
+# echo "***talise reg 0x84a502d0:">>$file
+# sudo busybox devmem 0x84a502d0>>$file
+# # sudo busybox devmem 0x84a502c0 w 1
 
-echo >>$file
-echo "***talise reg 0x84a702c4:">>$file
-sudo busybox devmem 0x84a702c4>>$file
-echo >>$file
-echo "***talise reg 0x84a702d0:">>$file
-sudo busybox devmem 0x84a702d0>>$file
-# sudo busybox devmem 0x84a702c0 w 1
+# echo >>$file
+# echo "***talise reg 0x84a702c4:">>$file
+# sudo busybox devmem 0x84a702c4>>$file
+# echo >>$file
+# echo "***talise reg 0x84a702d0:">>$file
+# sudo busybox devmem 0x84a702d0>>$file
+# # sudo busybox devmem 0x84a702c0 w 1
